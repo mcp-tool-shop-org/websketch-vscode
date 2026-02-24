@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=mcptoolshop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcptoolshop.websketch-vscode.svg" alt="Marketplace"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcp-tool-shop.websketch-vscode.svg" alt="Marketplace"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
 </p>
 
@@ -82,9 +82,9 @@ PAGE
 
 ## Quick Start
 
-1. 从 [VS Code 扩展市场](https://marketplace.visualstudio.com/items?itemName=mcptoolshop.websketch-vscode) 安装，或运行：
+1. 从 [VS Code 扩展市场](https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode) 安装，或运行：
    ```
-   ext install mcptoolshop.websketch-vscode
+   ext install mcp-tool-shop.websketch-vscode
    ```
 2. 打开命令面板（`Ctrl+Shift+P` / `Cmd+Shift+P`）
 3. 运行 **WebSketch: Capture URL**

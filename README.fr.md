@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://marketplace.visualstudio.com/items?itemName=mcptoolshop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcptoolshop.websketch-vscode.svg" alt="Marketplace"></a>
+  <a href="https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcp-tool-shop.websketch-vscode.svg" alt="Marketplace"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="Licence : MIT"></a>
 </p>
 
@@ -82,9 +82,9 @@ PAGE
 
 ## Démarrage rapide
 
-1. Installez depuis le [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=mcptoolshop.websketch-vscode) ou exécutez :
+1. Installez depuis le [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode) ou exécutez :
    ```
-   ext install mcptoolshop.websketch-vscode
+   ext install mcp-tool-shop.websketch-vscode
    ```
 2. Ouvrez la palette de commandes (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 3. Exécutez **WebSketch: Capture URL**
