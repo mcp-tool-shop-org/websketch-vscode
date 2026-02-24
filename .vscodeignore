@@ -11,3 +11,11 @@ test-capture.mjs
 test-tree.mjs
 logo.png
 dist/extension.js.map
+.claude/**
+README.ja.md
+README.zh.md
+README.es.md
+README.fr.md
+README.hi.md
+README.it.md
+README.pt-BR.md
