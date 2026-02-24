@@ -14,6 +14,7 @@
   "engines": {
     "vscode": "^1.85.0"
   },
+  "icon": "icon.png",
   "categories": ["Other", "Visualization"],
   "main": "./dist/extension.js",
   "activationEvents": [],

@@ -1,0 +1,345 @@
+---
+const base = import.meta.env.BASE_URL;
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebSketch for VS Code</title>
+  <meta name="description" content="Capture any web page as a grammar-based intermediate representation — right from VS Code." />
+  <link rel="icon" type="image/png" href={`${base}logo.png`} />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --border: #1e1e2a;
+      --text: #e4e4e7;
+      --text-dim: #71717a;
+      --accent: #4a90d9;
+      --accent-glow: #4a90d920;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .hero {
+      text-align: center;
+      padding: 4rem 1.5rem 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .hero img {
+      width: 340px;
+      max-width: 90%;
+      margin-bottom: 1.5rem;
+      filter: drop-shadow(0 0 40px var(--accent-glow));
+    }
+    .tagline {
+      font-size: 1.25rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin: 0 auto 2rem;
+    }
+
+    .install-block {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      flex-wrap: wrap;
+    }
+    .install-cmd {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.9rem;
+      color: var(--text);
+      cursor: pointer;
+      transition: border-color 0.2s;
+      position: relative;
+    }
+    .install-cmd:hover { border-color: var(--accent); }
+    .install-cmd .hint {
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      display: block;
+      margin-top: 0.25rem;
+    }
+
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-bottom: 3rem;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px #0004; text-decoration: none; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-outline { border: 1px solid var(--border); color: var(--text); }
+    .btn-outline:hover { border-color: var(--accent); }
+
+    .section-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: var(--text);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1rem;
+      max-width: 900px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card h3 { font-size: 1rem; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.85rem; color: var(--text-dim); line-height: 1.5; }
+
+    .how-it-works {
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .step {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+      align-items: flex-start;
+    }
+    .step-num {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 0.1rem;
+    }
+    .step-text { font-size: 0.9rem; }
+    .step-text strong { color: var(--text); }
+    .step-text span { color: var(--text-dim); }
+
+    .tabs-preview {
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .tab-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 0;
+    }
+    .tab {
+      padding: 0.5rem 1.25rem;
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      border-bottom: 2px solid transparent;
+      cursor: default;
+    }
+    .tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .tab-content {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      padding: 1.25rem;
+      font-family: 'Cascadia Code', 'Fira Code', monospace;
+      font-size: 0.75rem;
+      line-height: 1.4;
+      overflow-x: auto;
+      color: var(--text-dim);
+      white-space: pre;
+    }
+
+    .ecosystem {
+      max-width: 700px;
+      margin: 0 auto 3rem;
+      padding: 0 1.5rem;
+    }
+    .eco-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .eco-item:last-child { border-bottom: none; }
+    .eco-name { font-weight: 600; }
+    .eco-role { color: var(--text-dim); font-size: 0.8rem; }
+
+    footer {
+      text-align: center;
+      padding: 2rem 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--text-dim);
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 640px) {
+      .hero { padding: 2.5rem 1rem 1.5rem; }
+      .hero img { width: 240px; }
+      .tagline { font-size: 1.05rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <img src={`${base}logo.png`} alt="WebSketch" />
+    <p class="tagline">Capture any web page as a grammar-based intermediate representation — right from VS Code.</p>
+
+    <div class="install-block">
+      <div class="install-cmd" onclick="navigator.clipboard.writeText('ext install mcptoolshop.websketch-vscode'); this.querySelector('.hint').textContent = 'Copied!'">
+        ext install mcptoolshop.websketch-vscode
+        <span class="hint">click to copy</span>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <a href="https://github.com/mcp-tool-shop-org/websketch-vscode" class="btn btn-primary">GitHub</a>
+      <a href="https://marketplace.visualstudio.com/items?itemName=mcptoolshop.websketch-vscode" class="btn btn-outline">VS Code Marketplace</a>
+      <a href="https://www.npmjs.com/package/@mcptoolshop/websketch-ir" class="btn btn-outline">websketch-ir on npm</a>
+    </div>
+  </section>
+
+  <h2 class="section-title">How It Works</h2>
+  <div class="how-it-works">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-text"><strong>Enter a URL</strong> <span>— via Command Palette or clipboard</span></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-text"><strong>Headless capture</strong> <span>— uses your system Chrome/Edge, no bundled browser</span></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-text"><strong>DOM classification</strong> <span>— 5-tier classifier: ARIA &rarr; tag &rarr; class &rarr; structure &rarr; fallback</span></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-text"><strong>View results</strong> <span>— ASCII wireframe, tree view, or raw JSON in a side panel</span></div>
+    </div>
+  </div>
+
+  <h2 class="section-title">Three Views</h2>
+  <div class="tabs-preview">
+    <div class="tab-bar">
+      <div class="tab active">ASCII</div>
+      <div class="tab">Tree</div>
+      <div class="tab">JSON</div>
+    </div>
+    <div class="tab-content">URL: https://news.ycombinator.com/
+Viewport: 1280x800
+────────────────────────────────────────────────────
+  ┌[TBL]──────────────────────────────────────────┐
+  │ [LNK] [LNK] [LNK] [LNK] [LNK] [LNK]   [LNK] │
+  │ ┌[LST]───────────────────────┐                │
+  │ │ [LNK "Show HN: ..."] [LNK] │                │
+  │ │  12 pts · user · 3h · 4c   │                │
+  │ │ [LNK "Ask HN: ..."]  [LNK] │                │
+  │ │  8 pts · user · 5h · 2c    │                │
+  │ │ [LNK "Why we ..."]   [LNK] │                │
+  │ │  45 pts · user · 1h · 12c  │                │
+  │ └─────────────────────────────┘                │
+  │ [FRM] [INP ____________________]               │
+  └────────────────────────────────────────────────┘</div>
+  </div>
+
+  <h2 class="section-title">Features</h2>
+  <div class="cards">
+    <div class="card">
+      <h3>23 Semantic Primitives</h3>
+      <p>Fixed vocabulary of UI roles — BUTTON, NAV, CARD, LIST, INPUT, MODAL, and more. No DOM noise.</p>
+    </div>
+    <div class="card">
+      <h3>LLM-Ready Output</h3>
+      <p>ASCII wireframes paste directly into prompts. Language models can reason about layout without vision.</p>
+    </div>
+    <div class="card">
+      <h3>Smart Table Traversal</h3>
+      <p>TR/TD/TH are transparent — the walker sees through table markup and surfaces the real content.</p>
+    </div>
+    <div class="card">
+      <h3>Zero-Content Pruning</h3>
+      <p>Empty spacers and invisible elements are automatically removed. Only meaningful nodes survive.</p>
+    </div>
+    <div class="card">
+      <h3>Repeated Sibling Detection</h3>
+      <p>3+ siblings with the same role become a LIST. Feed items, search results, and menus are identified.</p>
+    </div>
+    <div class="card">
+      <h3>No Bundled Browser</h3>
+      <p>Uses puppeteer-core with your system Chrome or Edge. No 200MB download, no extra install.</p>
+    </div>
+  </div>
+
+  <h2 class="section-title">Ecosystem</h2>
+  <div class="ecosystem">
+    <div class="eco-item">
+      <a href="https://github.com/mcp-tool-shop-org/websketch-ir" class="eco-name">websketch-ir</a>
+      <span class="eco-role">Core grammar, rendering, diffing</span>
+    </div>
+    <div class="eco-item">
+      <span class="eco-name" style="color: var(--accent);">websketch-vscode</span>
+      <span class="eco-role">VS Code extension (this project)</span>
+    </div>
+    <div class="eco-item">
+      <a href="https://github.com/mcp-tool-shop-org/websketch-cli" class="eco-name">websketch-cli</a>
+      <span class="eco-role">Command-line capture</span>
+    </div>
+    <div class="eco-item">
+      <a href="https://github.com/mcp-tool-shop-org/websketch-extension" class="eco-name">websketch-extension</a>
+      <span class="eco-role">Chrome extension</span>
+    </div>
+    <div class="eco-item">
+      <a href="https://github.com/mcp-tool-shop-org/websketch-mcp" class="eco-name">websketch-mcp</a>
+      <span class="eco-role">MCP server for LLM agents</span>
+    </div>
+  </div>
+
+  <footer>
+    MIT License &middot; Part of <a href="https://mcptoolshop.com">MCP Tool Shop</a>
+  </footer>
+
+</body>
+</html>
