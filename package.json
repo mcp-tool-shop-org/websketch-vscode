@@ -35,6 +35,14 @@
       {
         "command": "websketch.exportAscii",
         "title": "WebSketch: Export ASCII Wireframe"
+      },
+      {
+        "command": "websketch.exportLlm",
+        "title": "WebSketch: Export LLM Tree"
+      },
+      {
+        "command": "websketch.copyLlm",
+        "title": "WebSketch: Copy LLM Tree to Clipboard"
       }
     ],
     "configuration": {

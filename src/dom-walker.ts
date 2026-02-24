@@ -17,6 +17,7 @@ export interface RawNode {
   enabled?: boolean;
   focusable?: boolean;
   semantic?: string;
+  label?: string;
   text?: { hash: string; len: number; kind: string };
   flags?: { sticky?: boolean; scrollable?: boolean; repeated?: boolean };
   z?: number;
@@ -131,6 +132,24 @@ export function getDomWalkerScript(): string {
 
     // --- Semantic extraction ---
     function extractSemantic(el: Element): string | undefined {
+      const tag = el.tagName;
+
+      // Heading levels preserve info that role=TEXT loses
+      if (/^H[1-6]$/.test(tag)) { return tag.toLowerCase(); }
+
+      // HTML5 semantic elements that lose specificity in role classification
+      if (tag === 'MAIN') { return 'main'; }
+      if (tag === 'ASIDE') { return 'aside'; }
+      if (tag === 'ARTICLE') { return 'article'; }
+      if (tag === 'SEARCH') { return 'search'; }
+
+      // ARIA roles that lose specificity during classification
+      const ariaRole = el.getAttribute('role');
+      if (ariaRole === 'search') { return 'search'; }
+      if (ariaRole === 'complementary') { return 'aside'; }
+      if (ariaRole === 'main') { return 'main'; }
+
+      // Keyword-based extraction from element attributes
       const ariaLabel = el.getAttribute('aria-label') ?? '';
       const id = el.id ?? '';
       const testId = el.getAttribute('data-testid') ?? '';
@@ -150,7 +169,7 @@ export function getDomWalkerScript(): string {
       }
 
       // Input type as semantic
-      if (el.tagName === 'INPUT') {
+      if (tag === 'INPUT') {
         const type = (el as HTMLInputElement).type;
         if (['email', 'password', 'search', 'tel', 'url'].includes(type)) {
           return type;
@@ -342,10 +361,32 @@ export function getDomWalkerScript(): string {
         }
       }
 
+      // --- Extract label for LLM consumption ---
+      let label: string | undefined;
+      if (['LINK', 'BUTTON', 'CHECKBOX', 'RADIO'].includes(finalRole)) {
+        let raw = (el.textContent || '').replace(/\s+/g, ' ').trim();
+        if (!raw) { raw = el.getAttribute('aria-label') || ''; }
+        if (raw) { label = raw.length > 50 ? raw.substring(0, 47) + '...' : raw; }
+      } else if (finalRole === 'TEXT') {
+        // Use directText (not recursive textContent) to avoid repeating child labels
+        const raw = directText.replace(/\s+/g, ' ').trim();
+        if (raw) { label = raw.length > 80 ? raw.substring(0, 77) + '...' : raw; }
+      } else if (finalRole === 'IMAGE') {
+        const raw = ((el as HTMLImageElement).alt || el.getAttribute('title') || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+        if (raw) { label = raw.length > 50 ? raw.substring(0, 47) + '...' : raw; }
+      } else if (finalRole === 'INPUT') {
+        const raw = ((el as HTMLInputElement).placeholder || el.getAttribute('aria-label') || '').replace(/\s+/g, ' ').trim();
+        if (raw) { label = raw.length > 50 ? raw.substring(0, 47) + '...' : raw; }
+      } else if (finalRole === 'ICON') {
+        const raw = (el.getAttribute('aria-label') || el.getAttribute('title') || '').replace(/\s+/g, ' ').trim();
+        if (raw) { label = raw.length > 30 ? raw.substring(0, 27) + '...' : raw; }
+      }
+
       const node: RawNode = { id: nodeId, role: finalRole, bbox, interactive, visible };
       if (!enabled) { node.enabled = false; }
       if (focusable) { node.focusable = true; }
       if (semantic) { node.semantic = semantic; }
+      if (label) { node.label = label; }
       if (textSignal) { node.text = textSignal; }
       if (sticky || scrollable) {
         if (!node.flags) { node.flags = {}; }

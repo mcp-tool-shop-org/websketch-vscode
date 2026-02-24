@@ -20,8 +20,8 @@ function findChrome() {
   throw new Error('No Chrome/Edge found');
 }
 
-// Build the dom-walker to JS so we can call getDomWalkerScript()
-const built = buildSync({
+// Build the dom-walker to JS
+const walkerBuilt = buildSync({
   entryPoints: ['./src/dom-walker.ts'],
   bundle: false,
   platform: 'node',
@@ -30,8 +30,21 @@ const built = buildSync({
   target: 'es2022',
 });
 const walkerModule = { exports: {} };
-new Function('module', 'exports', built.outputFiles[0].text)(walkerModule, walkerModule.exports);
+new Function('module', 'exports', walkerBuilt.outputFiles[0].text)(walkerModule, walkerModule.exports);
 const walkerScript = walkerModule.exports.getDomWalkerScript();
+
+// Build the LLM tree renderer (bundles dom-walker dependency)
+const rendererBuilt = buildSync({
+  entryPoints: ['./src/render-llm-tree.ts'],
+  bundle: true,
+  platform: 'node',
+  format: 'cjs',
+  write: false,
+  target: 'es2022',
+});
+const rendererModule = { exports: {} };
+new Function('module', 'exports', rendererBuilt.outputFiles[0].text)(rendererModule, rendererModule.exports);
+const renderLlmTree = rendererModule.exports.renderLlmTree;
 
 const url = process.argv[2] || 'https://news.ycombinator.com';
 console.log(`Capturing: ${url}`);
@@ -63,9 +76,21 @@ try {
     if (node.children) for (const c of node.children) count += countNodes(c);
     return count;
   }
+  function countLabels(node) {
+    let count = node.label ? 1 : 0;
+    if (node.children) for (const c of node.children) count += countLabels(c);
+    return count;
+  }
   console.log('  Total nodes:', countNodes(rawCapture.root));
+  console.log('  Nodes with labels:', countLabels(rawCapture.root));
 
-  // Compile to IR
+  // --- LLM Tree ---
+  const llmTree = renderLlmTree(rawCapture);
+  console.log('\n--- LLM Tree (first 50 lines) ---');
+  console.log(llmTree.split('\n').slice(0, 50).join('\n'));
+  console.log(`... (${llmTree.split('\n').length} total lines)`);
+
+  // --- Compile to IR ---
   const VALID_ROLES = new Set(['PAGE','NAV','HEADER','FOOTER','SECTION','CARD','LIST','TABLE','MODAL','TOAST','DROPDOWN','FORM','INPUT','BUTTON','LINK','CHECKBOX','RADIO','ICON','IMAGE','TEXT','PAGINATION','UNKNOWN']);
 
   function compileNode(raw) {
@@ -112,11 +137,6 @@ try {
   if (issues.length > 0) {
     issues.slice(0, 10).forEach(i => console.log('  -', i.code, i.message));
   }
-
-  const ascii = renderForLLM(capture);
-  console.log('\n--- ASCII Wireframe (first 30 lines) ---');
-  console.log(ascii.split('\n').slice(0, 30).join('\n'));
-  console.log(`... (${ascii.split('\n').length} total lines)`);
 
   console.log('\nSUCCESS');
 } finally {

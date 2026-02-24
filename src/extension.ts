@@ -1,8 +1,9 @@
 import * as vscode from 'vscode';
 import puppeteer, { type Browser } from 'puppeteer-core';
 import { findBrowser, getSettings } from './browser';
-import { getDomWalkerScript } from './dom-walker';
+import { getDomWalkerScript, type RawCapture } from './dom-walker';
 import { compile } from './compiler';
+import { renderLlmTree } from './render-llm-tree';
 import { WebSketchPanel } from './webview/panel';
 import { renderForLLM } from '@mcptoolshop/websketch-ir';
 
@@ -12,6 +13,8 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.commands.registerCommand('websketch.captureClipboard', () => captureFromClipboard(context)),
     vscode.commands.registerCommand('websketch.exportJson', () => exportJson()),
     vscode.commands.registerCommand('websketch.exportAscii', () => exportAscii()),
+    vscode.commands.registerCommand('websketch.exportLlm', () => exportLlm()),
+    vscode.commands.registerCommand('websketch.copyLlm', () => copyLlm()),
   );
 }
 
@@ -106,16 +109,20 @@ async function runCapture(context: vscode.ExtensionContext, url: string): Promis
         // Inject DOM walker and capture
         progress.report({ message: 'Analyzing DOM...' });
         const walkerScript = getDomWalkerScript();
-        const rawCapture = await page.evaluate(walkerScript);
+        const rawCapture = await page.evaluate(walkerScript) as RawCapture;
 
         if (token.isCancellationRequested) { return; }
 
+        // Generate LLM tree from raw capture (before compilation strips labels)
+        progress.report({ message: 'Rendering LLM tree...' });
+        const llmTree = renderLlmTree(rawCapture);
+
         // Compile to IR
         progress.report({ message: 'Compiling IR...' });
-        const capture = compile(rawCapture as any);
+        const capture = compile(rawCapture);
 
         // Show in webview
-        WebSketchPanel.show(context.extensionUri, capture);
+        WebSketchPanel.show(context.extensionUri, capture, llmTree);
       } catch (err: any) {
         if (err.message?.includes('Could not find')) {
           const action = await vscode.window.showErrorMessage(
@@ -171,4 +178,35 @@ async function exportAscii(): Promise<void> {
 
   await vscode.workspace.fs.writeFile(uri, Buffer.from(ascii, 'utf-8'));
   vscode.window.showInformationMessage(`Saved ASCII wireframe to ${uri.fsPath}`);
+}
+
+async function exportLlm(): Promise<void> {
+  const llmTree = WebSketchPanel.currentPanel?.getLlmTree();
+  if (!llmTree) {
+    vscode.window.showWarningMessage('No capture to export. Run WebSketch: Capture URL first.');
+    return;
+  }
+
+  const capture = WebSketchPanel.currentPanel?.getCapture();
+  const hostname = capture ? new URL(capture.url).hostname : 'page';
+
+  const uri = await vscode.window.showSaveDialog({
+    defaultUri: vscode.Uri.file(`websketch-${hostname}.md`),
+    filters: { 'Markdown': ['md'], 'Text': ['txt'] },
+  });
+  if (!uri) { return; }
+
+  await vscode.workspace.fs.writeFile(uri, Buffer.from(llmTree, 'utf-8'));
+  vscode.window.showInformationMessage(`Saved LLM tree to ${uri.fsPath}`);
+}
+
+async function copyLlm(): Promise<void> {
+  const llmTree = WebSketchPanel.currentPanel?.getLlmTree();
+  if (!llmTree) {
+    vscode.window.showWarningMessage('No capture to copy. Run WebSketch: Capture URL first.');
+    return;
+  }
+
+  await vscode.env.clipboard.writeText(llmTree);
+  vscode.window.showInformationMessage('LLM tree copied to clipboard');
 }

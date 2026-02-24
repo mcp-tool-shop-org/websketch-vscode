@@ -86586,6 +86586,32 @@ function getDomWalkerScript() {
       [/\b(icon|fa-|material-icons|lucide)\b/i, "ICON"]
     ];
     function extractSemantic(el) {
+      const tag = el.tagName;
+      if (/^H[1-6]$/.test(tag)) {
+        return tag.toLowerCase();
+      }
+      if (tag === "MAIN") {
+        return "main";
+      }
+      if (tag === "ASIDE") {
+        return "aside";
+      }
+      if (tag === "ARTICLE") {
+        return "article";
+      }
+      if (tag === "SEARCH") {
+        return "search";
+      }
+      const ariaRole = el.getAttribute("role");
+      if (ariaRole === "search") {
+        return "search";
+      }
+      if (ariaRole === "complementary") {
+        return "aside";
+      }
+      if (ariaRole === "main") {
+        return "main";
+      }
       const ariaLabel = el.getAttribute("aria-label") ?? "";
       const id = el.id ?? "";
       const testId = el.getAttribute("data-testid") ?? "";
@@ -86615,7 +86641,7 @@ function getDomWalkerScript() {
           return semantic;
         }
       }
-      if (el.tagName === "INPUT") {
+      if (tag === "INPUT") {
         const type = el.type;
         if (["email", "password", "search", "tel", "url"].includes(type)) {
           return type;
@@ -86805,6 +86831,36 @@ function getDomWalkerScript() {
           c.flags.repeated = true;
         }
       }
+      let label;
+      if (["LINK", "BUTTON", "CHECKBOX", "RADIO"].includes(finalRole)) {
+        let raw = (el.textContent || "").replace(/\s+/g, " ").trim();
+        if (!raw) {
+          raw = el.getAttribute("aria-label") || "";
+        }
+        if (raw) {
+          label = raw.length > 50 ? raw.substring(0, 47) + "..." : raw;
+        }
+      } else if (finalRole === "TEXT") {
+        const raw = directText.replace(/\s+/g, " ").trim();
+        if (raw) {
+          label = raw.length > 80 ? raw.substring(0, 77) + "..." : raw;
+        }
+      } else if (finalRole === "IMAGE") {
+        const raw = (el.alt || el.getAttribute("title") || el.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim();
+        if (raw) {
+          label = raw.length > 50 ? raw.substring(0, 47) + "..." : raw;
+        }
+      } else if (finalRole === "INPUT") {
+        const raw = (el.placeholder || el.getAttribute("aria-label") || "").replace(/\s+/g, " ").trim();
+        if (raw) {
+          label = raw.length > 50 ? raw.substring(0, 47) + "..." : raw;
+        }
+      } else if (finalRole === "ICON") {
+        const raw = (el.getAttribute("aria-label") || el.getAttribute("title") || "").replace(/\s+/g, " ").trim();
+        if (raw) {
+          label = raw.length > 30 ? raw.substring(0, 27) + "..." : raw;
+        }
+      }
       const node = { id: nodeId, role: finalRole, bbox, interactive, visible };
       if (!enabled) {
         node.enabled = false;
@@ -86814,6 +86870,9 @@ function getDomWalkerScript() {
       }
       if (semantic) {
         node.semantic = semantic;
+      }
+      if (label) {
+        node.label = label;
       }
       if (textSignal) {
         node.text = textSignal;
@@ -87470,6 +87529,103 @@ function compile(raw) {
   return capture;
 }
 
+// src/render-llm-tree.ts
+function renderLlmTree(capture) {
+  const lines = [];
+  lines.push(`# WebSketch: ${capture.url}`);
+  lines.push(`# Viewport: ${capture.viewport.w_px}\xD7${capture.viewport.h_px}`);
+  lines.push(`# Captured: ${new Date(capture.timestamp_ms).toISOString()}`);
+  lines.push("");
+  renderNode2(capture.root, lines, "", true);
+  return lines.join("\n");
+}
+function shouldPrune(node) {
+  if (node.interactive) {
+    return false;
+  }
+  if (node.label) {
+    return false;
+  }
+  if (node.semantic) {
+    return false;
+  }
+  if (node.text) {
+    return false;
+  }
+  if (!node.children || node.children.length === 0) {
+    return true;
+  }
+  return node.children.every(shouldPrune);
+}
+function getCollapsedChild(node) {
+  if (node.role !== "SECTION") {
+    return null;
+  }
+  if (node.label || node.semantic || node.interactive) {
+    return null;
+  }
+  if (node.flags?.sticky || node.flags?.scrollable) {
+    return null;
+  }
+  const visible = getVisibleChildren(node);
+  if (visible.length === 1) {
+    return visible[0];
+  }
+  return null;
+}
+function getVisibleChildren(node) {
+  if (!node.children) {
+    return [];
+  }
+  return node.children.filter((c) => !shouldPrune(c));
+}
+function renderNode2(node, lines, prefix, isLast) {
+  const collapsed = getCollapsedChild(node);
+  if (collapsed) {
+    renderNode2(collapsed, lines, prefix, isLast);
+    return;
+  }
+  let desc = "";
+  if (node.interactive) {
+    desc += "*";
+  }
+  desc += node.role;
+  if (node.role === "LIST") {
+    const visible = getVisibleChildren(node);
+    desc += ` (${visible.length} ${visible.length === 1 ? "item" : "items"})`;
+  }
+  if (node.semantic) {
+    desc += ` <${node.semantic}>`;
+  }
+  const flags = [];
+  if (node.flags?.sticky) {
+    flags.push("sticky");
+  }
+  if (node.flags?.scrollable) {
+    flags.push("scrollable");
+  }
+  if (flags.length > 0) {
+    desc += ` {${flags.join(", ")}}`;
+  }
+  if (node.label) {
+    desc += ` "${node.label}"`;
+  }
+  if (node.role === "PAGE") {
+    lines.push(desc);
+  } else {
+    const connector = isLast ? "\u2514\u2500 " : "\u251C\u2500 ";
+    lines.push(prefix + connector + desc);
+  }
+  const visibleChildren = getVisibleChildren(node);
+  if (visibleChildren.length > 0) {
+    const childPrefix = node.role === "PAGE" ? "" : prefix + (isLast ? "   " : "\u2502  ");
+    const len = visibleChildren.length;
+    for (let i = 0; i < len; i++) {
+      renderNode2(visibleChildren[i], lines, childPrefix, i === len - 1);
+    }
+  }
+}
+
 // src/webview/panel.ts
 var vscode2 = __toESM(require("vscode"));
 
@@ -87548,7 +87704,8 @@ function renderTreeNode(node, depth = 0) {
     ${childrenHtml}
   </details>`;
 }
-function generateHtml(capture, nonce) {
+function generateHtml(capture, llmTree, nonce) {
+  const llmContent = escapeHtml(llmTree);
   const asciiContent = escapeHtml(renderForLLM(capture));
   const jsonContent = syntaxHighlightJson(escapeHtml(JSON.stringify(capture, null, 2)));
   const treeContent = renderTreeNode(capture.root);
@@ -87602,16 +87759,17 @@ function generateHtml(capture, nonce) {
       color: var(--vscode-descriptionForeground);
     }
     .copy-btn {
-      background: var(--vscode-button-secondaryBackground);
-      color: var(--vscode-button-secondaryForeground);
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
       border: none;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 3px;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 500;
       font-family: var(--vscode-font-family);
     }
-    .copy-btn:hover { background: var(--vscode-button-secondaryHoverBackground); }
+    .copy-btn:hover { background: var(--vscode-button-hoverBackground); }
     pre {
       font-family: var(--vscode-editor-font-family);
       font-size: var(--vscode-editor-font-size);
@@ -87650,11 +87808,18 @@ function generateHtml(capture, nonce) {
     <span>${new Date(capture.timestamp_ms).toLocaleTimeString()}</span>
   </div>
   <div class="tab-bar">
-    <button class="tab active" data-tab="ascii">ASCII</button>
+    <button class="tab active" data-tab="llm">LLM</button>
+    <button class="tab" data-tab="ascii">ASCII</button>
     <button class="tab" data-tab="tree">Tree</button>
     <button class="tab" data-tab="json">JSON</button>
   </div>
-  <div id="ascii" class="tab-content active">
+  <div id="llm" class="tab-content active">
+    <div style="text-align:right;padding:4px 8px">
+      <button class="copy-btn" data-copy="llm-pre">Copy for LLM</button>
+    </div>
+    <pre id="llm-pre">${llmContent}</pre>
+  </div>
+  <div id="ascii" class="tab-content">
     <div style="text-align:right;padding:4px 8px">
       <button class="copy-btn" data-copy="ascii-pre">Copy</button>
     </div>
@@ -87684,8 +87849,9 @@ function generateHtml(capture, nonce) {
         const target = document.getElementById(btn.dataset.copy);
         if (target) {
           vscode.postMessage({ type: 'copy', content: target.textContent });
+          const origText = btn.textContent;
           btn.textContent = 'Copied!';
-          setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+          setTimeout(() => { btn.textContent = origText; }, 1500);
         }
       });
     });
@@ -87701,11 +87867,12 @@ var WebSketchPanel = class _WebSketchPanel {
   panel;
   extensionUri;
   capture;
+  llmTree = "";
   disposables = [];
-  static show(extensionUri, capture) {
+  static show(extensionUri, capture, llmTree) {
     const column = vscode2.ViewColumn.Beside;
     if (_WebSketchPanel.currentPanel) {
-      _WebSketchPanel.currentPanel.update(capture);
+      _WebSketchPanel.currentPanel.update(capture, llmTree);
       _WebSketchPanel.currentPanel.panel.reveal(column);
       return _WebSketchPanel.currentPanel;
     }
@@ -87719,13 +87886,14 @@ var WebSketchPanel = class _WebSketchPanel {
         localResourceRoots: [vscode2.Uri.joinPath(extensionUri, "media")]
       }
     );
-    _WebSketchPanel.currentPanel = new _WebSketchPanel(panel, extensionUri, capture);
+    _WebSketchPanel.currentPanel = new _WebSketchPanel(panel, extensionUri, capture, llmTree);
     return _WebSketchPanel.currentPanel;
   }
-  constructor(panel, extensionUri, capture) {
+  constructor(panel, extensionUri, capture, llmTree) {
     this.panel = panel;
     this.extensionUri = extensionUri;
     this.capture = capture;
+    this.llmTree = llmTree;
     this.setHtml();
     this.panel.onDidDispose(() => this.dispose(), null, this.disposables);
     this.panel.webview.onDidReceiveMessage(
@@ -87734,20 +87902,24 @@ var WebSketchPanel = class _WebSketchPanel {
       this.disposables
     );
   }
-  update(capture) {
+  update(capture, llmTree) {
     this.capture = capture;
+    this.llmTree = llmTree;
     this.panel.title = `WebSketch: ${new URL(capture.url).hostname}`;
     this.setHtml();
   }
   getCapture() {
     return this.capture;
   }
+  getLlmTree() {
+    return this.llmTree || void 0;
+  }
   setHtml() {
     if (!this.capture) {
       return;
     }
     const nonce = getNonce();
-    this.panel.webview.html = generateHtml(this.capture, nonce);
+    this.panel.webview.html = generateHtml(this.capture, this.llmTree, nonce);
   }
   handleMessage(msg) {
     switch (msg.type) {
@@ -87783,7 +87955,9 @@ function activate(context2) {
     vscode3.commands.registerCommand("websketch.capture", () => captureUrl(context2)),
     vscode3.commands.registerCommand("websketch.captureClipboard", () => captureFromClipboard(context2)),
     vscode3.commands.registerCommand("websketch.exportJson", () => exportJson()),
-    vscode3.commands.registerCommand("websketch.exportAscii", () => exportAscii())
+    vscode3.commands.registerCommand("websketch.exportAscii", () => exportAscii()),
+    vscode3.commands.registerCommand("websketch.exportLlm", () => exportLlm()),
+    vscode3.commands.registerCommand("websketch.copyLlm", () => copyLlm())
   );
 }
 function deactivate() {
@@ -87871,9 +88045,11 @@ async function runCapture(context2, url) {
         if (token.isCancellationRequested) {
           return;
         }
+        progress.report({ message: "Rendering LLM tree..." });
+        const llmTree = renderLlmTree(rawCapture);
         progress.report({ message: "Compiling IR..." });
         const capture = compile(rawCapture);
-        WebSketchPanel.show(context2.extensionUri, capture);
+        WebSketchPanel.show(context2.extensionUri, capture, llmTree);
       } catch (err) {
         if (err.message?.includes("Could not find")) {
           const action = await vscode3.window.showErrorMessage(
@@ -87928,6 +88104,33 @@ async function exportAscii() {
   }
   await vscode3.workspace.fs.writeFile(uri, Buffer.from(ascii, "utf-8"));
   vscode3.window.showInformationMessage(`Saved ASCII wireframe to ${uri.fsPath}`);
+}
+async function exportLlm() {
+  const llmTree = WebSketchPanel.currentPanel?.getLlmTree();
+  if (!llmTree) {
+    vscode3.window.showWarningMessage("No capture to export. Run WebSketch: Capture URL first.");
+    return;
+  }
+  const capture = WebSketchPanel.currentPanel?.getCapture();
+  const hostname = capture ? new URL(capture.url).hostname : "page";
+  const uri = await vscode3.window.showSaveDialog({
+    defaultUri: vscode3.Uri.file(`websketch-${hostname}.md`),
+    filters: { "Markdown": ["md"], "Text": ["txt"] }
+  });
+  if (!uri) {
+    return;
+  }
+  await vscode3.workspace.fs.writeFile(uri, Buffer.from(llmTree, "utf-8"));
+  vscode3.window.showInformationMessage(`Saved LLM tree to ${uri.fsPath}`);
+}
+async function copyLlm() {
+  const llmTree = WebSketchPanel.currentPanel?.getLlmTree();
+  if (!llmTree) {
+    vscode3.window.showWarningMessage("No capture to copy. Run WebSketch: Capture URL first.");
+    return;
+  }
+  await vscode3.env.clipboard.writeText(llmTree);
+  vscode3.window.showInformationMessage("LLM tree copied to clipboard");
 }
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

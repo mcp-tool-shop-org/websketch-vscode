@@ -64,7 +64,8 @@ function renderTreeNode(node: UINode, depth: number = 0): string {
   </details>`;
 }
 
-export function generateHtml(capture: WebSketchCapture, nonce: string): string {
+export function generateHtml(capture: WebSketchCapture, llmTree: string, nonce: string): string {
+  const llmContent = escapeHtml(llmTree);
   const asciiContent = escapeHtml(renderForLLM(capture));
   const jsonContent = syntaxHighlightJson(escapeHtml(JSON.stringify(capture, null, 2)));
   const treeContent = renderTreeNode(capture.root);
@@ -119,16 +120,17 @@ export function generateHtml(capture: WebSketchCapture, nonce: string): string {
       color: var(--vscode-descriptionForeground);
     }
     .copy-btn {
-      background: var(--vscode-button-secondaryBackground);
-      color: var(--vscode-button-secondaryForeground);
+      background: var(--vscode-button-background);
+      color: var(--vscode-button-foreground);
       border: none;
-      padding: 3px 10px;
+      padding: 4px 12px;
       border-radius: 3px;
       cursor: pointer;
-      font-size: 11px;
+      font-size: 12px;
+      font-weight: 500;
       font-family: var(--vscode-font-family);
     }
-    .copy-btn:hover { background: var(--vscode-button-secondaryHoverBackground); }
+    .copy-btn:hover { background: var(--vscode-button-hoverBackground); }
     pre {
       font-family: var(--vscode-editor-font-family);
       font-size: var(--vscode-editor-font-size);
@@ -167,11 +169,18 @@ export function generateHtml(capture: WebSketchCapture, nonce: string): string {
     <span>${new Date(capture.timestamp_ms).toLocaleTimeString()}</span>
   </div>
   <div class="tab-bar">
-    <button class="tab active" data-tab="ascii">ASCII</button>
+    <button class="tab active" data-tab="llm">LLM</button>
+    <button class="tab" data-tab="ascii">ASCII</button>
     <button class="tab" data-tab="tree">Tree</button>
     <button class="tab" data-tab="json">JSON</button>
   </div>
-  <div id="ascii" class="tab-content active">
+  <div id="llm" class="tab-content active">
+    <div style="text-align:right;padding:4px 8px">
+      <button class="copy-btn" data-copy="llm-pre">Copy for LLM</button>
+    </div>
+    <pre id="llm-pre">${llmContent}</pre>
+  </div>
+  <div id="ascii" class="tab-content">
     <div style="text-align:right;padding:4px 8px">
       <button class="copy-btn" data-copy="ascii-pre">Copy</button>
     </div>
@@ -201,8 +210,9 @@ export function generateHtml(capture: WebSketchCapture, nonce: string): string {
         const target = document.getElementById(btn.dataset.copy);
         if (target) {
           vscode.postMessage({ type: 'copy', content: target.textContent });
+          const origText = btn.textContent;
           btn.textContent = 'Copied!';
-          setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+          setTimeout(() => { btn.textContent = origText; }, 1500);
         }
       });
     });

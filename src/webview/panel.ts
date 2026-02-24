@@ -9,13 +9,14 @@ export class WebSketchPanel {
   private readonly panel: vscode.WebviewPanel;
   private readonly extensionUri: vscode.Uri;
   private capture: WebSketchCapture | undefined;
+  private llmTree: string = '';
   private disposables: vscode.Disposable[] = [];
 
-  public static show(extensionUri: vscode.Uri, capture: WebSketchCapture): WebSketchPanel {
+  public static show(extensionUri: vscode.Uri, capture: WebSketchCapture, llmTree: string): WebSketchPanel {
     const column = vscode.ViewColumn.Beside;
 
     if (WebSketchPanel.currentPanel) {
-      WebSketchPanel.currentPanel.update(capture);
+      WebSketchPanel.currentPanel.update(capture, llmTree);
       WebSketchPanel.currentPanel.panel.reveal(column);
       return WebSketchPanel.currentPanel;
     }
@@ -31,14 +32,15 @@ export class WebSketchPanel {
       }
     );
 
-    WebSketchPanel.currentPanel = new WebSketchPanel(panel, extensionUri, capture);
+    WebSketchPanel.currentPanel = new WebSketchPanel(panel, extensionUri, capture, llmTree);
     return WebSketchPanel.currentPanel;
   }
 
-  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, capture: WebSketchCapture) {
+  private constructor(panel: vscode.WebviewPanel, extensionUri: vscode.Uri, capture: WebSketchCapture, llmTree: string) {
     this.panel = panel;
     this.extensionUri = extensionUri;
     this.capture = capture;
+    this.llmTree = llmTree;
 
     this.setHtml();
 
@@ -51,8 +53,9 @@ export class WebSketchPanel {
     );
   }
 
-  public update(capture: WebSketchCapture): void {
+  public update(capture: WebSketchCapture, llmTree: string): void {
     this.capture = capture;
+    this.llmTree = llmTree;
     this.panel.title = `WebSketch: ${new URL(capture.url).hostname}`;
     this.setHtml();
   }
@@ -61,10 +64,14 @@ export class WebSketchPanel {
     return this.capture;
   }
 
+  public getLlmTree(): string | undefined {
+    return this.llmTree || undefined;
+  }
+
   private setHtml(): void {
     if (!this.capture) { return; }
     const nonce = getNonce();
-    this.panel.webview.html = generateHtml(this.capture, nonce);
+    this.panel.webview.html = generateHtml(this.capture, this.llmTree, nonce);
   }
 
   private handleMessage(msg: { type: string; content?: string }): void {
