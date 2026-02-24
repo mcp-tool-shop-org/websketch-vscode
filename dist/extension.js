@@ -86533,9 +86533,6 @@ function getDomWalkerScript() {
       ASIDE: "SECTION",
       FORM: "FORM",
       TABLE: "TABLE",
-      THEAD: "TABLE",
-      TBODY: "TABLE",
-      TFOOT: "TABLE",
       UL: "LIST",
       OL: "LIST",
       DL: "LIST",
@@ -86564,6 +86561,20 @@ function getDomWalkerScript() {
       STRONG: "TEXT",
       SMALL: "TEXT"
     };
+    const TRANSPARENT_TAGS = /* @__PURE__ */ new Set([
+      "THEAD",
+      "TBODY",
+      "TFOOT",
+      "TR",
+      "TD",
+      "TH",
+      "COLGROUP",
+      "COL",
+      "CAPTION",
+      "DD",
+      "DT",
+      "LI"
+    ]);
     const CLASS_PATTERNS = [
       [/\b(card|tile|product)\b/i, "CARD"],
       [/\b(modal|dialog|overlay|lightbox)\b/i, "MODAL"],
@@ -86691,6 +86702,59 @@ function getDomWalkerScript() {
     function getDirectText(el) {
       return Array.from(el.childNodes).filter((n) => n.nodeType === Node.TEXT_NODE).map((n) => (n.textContent ?? "").trim()).filter(Boolean).join(" ");
     }
+    function collectChildren(el, depth, parentPath) {
+      const results = [];
+      const childElements = Array.from(el.children);
+      const limit = Math.min(childElements.length, MAX_CHILDREN2);
+      for (let i = 0; i < limit; i++) {
+        const child = childElements[i];
+        if (TRANSPARENT_TAGS.has(child.tagName)) {
+          const promoted = collectChildren(child, depth, parentPath);
+          for (const p of promoted) {
+            results.push(p);
+          }
+        } else {
+          const node = walkElement(child, depth + 1, parentPath);
+          if (node) {
+            results.push(node);
+          }
+        }
+      }
+      return results;
+    }
+    function detectRepeatedSiblings(children) {
+      if (children.length < 3) {
+        return false;
+      }
+      const roleCounts = {};
+      for (const c of children) {
+        roleCounts[c.role] = (roleCounts[c.role] || 0) + 1;
+      }
+      for (const count of Object.values(roleCounts)) {
+        if (count >= 3 && count / children.length >= 0.6) {
+          return true;
+        }
+      }
+      return false;
+    }
+    function isZeroContent(node) {
+      if (node.interactive) {
+        return false;
+      }
+      if (node.semantic) {
+        return false;
+      }
+      if (node.text) {
+        return false;
+      }
+      if (node.children && node.children.length > 0) {
+        return false;
+      }
+      if (node.bbox[2] < 5e-3 || node.bbox[3] < 5e-3) {
+        return true;
+      }
+      return false;
+    }
     function walkElement(el, depth, parentPath) {
       if (nodeCount >= MAX_NODES) {
         return null;
@@ -86721,15 +86785,8 @@ function getDomWalkerScript() {
       const enabled = !el.disabled && el.getAttribute("aria-disabled") !== "true";
       const focusable = interactive && enabled && el.getAttribute("tabindex") !== "-1";
       const nodeId = `${parentPath}/${djb2(role + bbox.join(","))}`;
-      const rawChildren = [];
-      const childElements = Array.from(el.children);
-      const limit = Math.min(childElements.length, MAX_CHILDREN2);
-      for (let i = 0; i < limit; i++) {
-        const child = walkElement(childElements[i], depth + 1, nodeId);
-        if (child) {
-          rawChildren.push(child);
-        }
-      }
+      let rawChildren = collectChildren(el, depth, nodeId);
+      rawChildren = rawChildren.filter((c) => !isZeroContent(c));
       if (rawChildren.length === 1 && !textSignal && role === "SECTION") {
         const child = rawChildren[0];
         const bboxClose = Math.abs(bbox[0] - child.bbox[0]) < 5e-3 && Math.abs(bbox[1] - child.bbox[1]) < 5e-3 && Math.abs(bbox[2] - child.bbox[2]) < 5e-3 && Math.abs(bbox[3] - child.bbox[3]) < 5e-3;
@@ -86738,7 +86795,17 @@ function getDomWalkerScript() {
           return child;
         }
       }
-      const node = { id: nodeId, role, bbox, interactive, visible };
+      let finalRole = role;
+      if (rawChildren.length >= 3 && (role === "SECTION" || role === "TABLE") && detectRepeatedSiblings(rawChildren)) {
+        finalRole = "LIST";
+        for (const c of rawChildren) {
+          if (!c.flags) {
+            c.flags = {};
+          }
+          c.flags.repeated = true;
+        }
+      }
+      const node = { id: nodeId, role: finalRole, bbox, interactive, visible };
       if (!enabled) {
         node.enabled = false;
       }
@@ -86752,7 +86819,9 @@ function getDomWalkerScript() {
         node.text = textSignal;
       }
       if (sticky || scrollable) {
-        node.flags = {};
+        if (!node.flags) {
+          node.flags = {};
+        }
         if (sticky) {
           node.flags.sticky = true;
         }
