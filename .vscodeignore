@@ -1,0 +1,13 @@
+.github/**
+docs/**
+src/**
+node_modules/**
+*.tgz
+*.vsix
+.gitignore
+build.js
+tsconfig.json
+test-capture.mjs
+test-tree.mjs
+logo.png
+dist/extension.js.map
