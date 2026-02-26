@@ -1,6 +1,4 @@
-<p align="center">
-            <img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/websketch-vscode/readme.png"
-           alt="WebSketch" width="340"></p>
+<p align="center"><img src="logo.png" alt="WebSketch" width="340"></p>
 
 <h1 align="center">WebSketch</h1>
 
