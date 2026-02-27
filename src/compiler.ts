@@ -8,11 +8,11 @@ const VALID_ROLES = new Set<string>([
   'CHECKBOX', 'RADIO', 'ICON', 'IMAGE', 'TEXT', 'PAGINATION', 'UNKNOWN',
 ]);
 
-function toUIRole(role: string): UIRole {
+export function toUIRole(role: string): UIRole {
   return VALID_ROLES.has(role) ? (role as UIRole) : 'UNKNOWN';
 }
 
-function toBBox01(bbox: [number, number, number, number]): BBox01 {
+export function toBBox01(bbox: [number, number, number, number]): BBox01 {
   return [
     Math.max(0, Math.min(1, bbox[0])),
     Math.max(0, Math.min(1, bbox[1])),
@@ -21,7 +21,7 @@ function toBBox01(bbox: [number, number, number, number]): BBox01 {
   ] as unknown as BBox01;
 }
 
-function toTextSignal(text: { hash: string; len: number; kind: string }): TextSignal {
+export function toTextSignal(text: { hash: string; len: number; kind: string }): TextSignal {
   const validKinds = new Set(['none', 'short', 'sentence', 'paragraph', 'mixed']);
   return {
     hash: text.hash,
@@ -30,7 +30,7 @@ function toTextSignal(text: { hash: string; len: number; kind: string }): TextSi
   };
 }
 
-function compileNode(raw: RawNode): UINode {
+export function compileNode(raw: RawNode): UINode {
   const node: UINode = {
     id: raw.id,
     role: toUIRole(raw.role),

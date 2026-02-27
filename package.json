@@ -2,7 +2,7 @@
   "name": "websketch-vscode",
   "displayName": "WebSketch",
   "description": "Capture web pages as grammar-based IR for LLM consumption",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "publisher": "mcp-tool-shop",
   "license": "MIT",
   "author": "mcp-tool-shop <64996768+mcp-tool-shop@users.noreply.github.com>",
@@ -83,6 +83,7 @@
     "build": "node build.js",
     "watch": "node build.js --watch",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "vscode:prepublish": "node build.js"
   },
   "dependencies": {
@@ -93,6 +94,7 @@
     "@types/node": "^22.0.0",
     "@types/vscode": "^1.85.0",
     "esbuild": "^0.24.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.18"
   }
 }

@@ -5,3 +5,5 @@ Thumbs.db
 docs/.astro/
 docs/dist/
 site/.astro/
+site/dist/
+*.vsix

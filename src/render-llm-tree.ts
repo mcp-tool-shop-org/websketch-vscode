@@ -32,7 +32,7 @@ export function renderLlmTree(capture: RawCapture): string {
 }
 
 /** Should this node be hidden from the LLM tree? */
-function shouldPrune(node: RawNode): boolean {
+export function shouldPrune(node: RawNode): boolean {
   // Nodes that carry their own information always survive
   if (node.interactive) { return false; }
   if (node.label) { return false; }
@@ -47,7 +47,7 @@ function shouldPrune(node: RawNode): boolean {
 }
 
 /** Should this wrapper be collapsed (replaced by its single child)? */
-function getCollapsedChild(node: RawNode): RawNode | null {
+export function getCollapsedChild(node: RawNode): RawNode | null {
   if (node.role !== 'SECTION') { return null; }
   if (node.label || node.semantic || node.interactive) { return null; }
   if (node.flags?.sticky || node.flags?.scrollable) { return null; }
@@ -58,7 +58,7 @@ function getCollapsedChild(node: RawNode): RawNode | null {
 }
 
 /** Get children that pass pruning (memoized per render). */
-function getVisibleChildren(node: RawNode): RawNode[] {
+export function getVisibleChildren(node: RawNode): RawNode[] {
   if (!node.children) { return []; }
   return node.children.filter(c => !shouldPrune(c));
 }

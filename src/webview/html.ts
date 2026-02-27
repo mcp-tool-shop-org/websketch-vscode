@@ -1,7 +1,7 @@
 import type { WebSketchCapture, UINode } from '@mcptoolshop/websketch-ir';
 import { renderForLLM } from '@mcptoolshop/websketch-ir';
 
-function escapeHtml(text: string): string {
+export function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -9,7 +9,7 @@ function escapeHtml(text: string): string {
     .replace(/"/g, '&quot;');
 }
 
-function syntaxHighlightJson(json: string): string {
+export function syntaxHighlightJson(json: string): string {
   return json.replace(
     /("(?:\\.|[^"\\])*")\s*:/g,
     '<span class="json-key">$1</span>:'
