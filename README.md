@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcp-tool-shop.websketch-vscode.svg" alt="Marketplace"></a>
+  <a href="https://codecov.io/gh/mcp-tool-shop-org/websketch-vscode"><img src="https://codecov.io/gh/mcp-tool-shop-org/websketch-vscode/branch/main/graph/badge.svg" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://mcp-tool-shop-org.github.io/websketch-vscode/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
@@ -233,8 +234,14 @@ All tools produce the same `WebSketchCapture` IR, so outputs are interchangeable
 
 No bundled browser. No 200MB download. WebSketch uses `puppeteer-core` with whatever browser you already have.
 
+## Security & Data Scope
+
+**Data touched:** URLs entered by the user (navigated via puppeteer-core using local Chrome/Edge in headless mode), captured page content converted to IR tree, exports written to workspace files or clipboard. **Data NOT touched:** no files outside the workspace, no OS credentials, no browser login sessions (headless mode with no profile). **Network:** navigates to user-specified URLs only — no other outbound requests. **No telemetry** is collected or sent.
+
 ## License
 
 MIT License &mdash; see [LICENSE](LICENSE) for details.
 
-> Part of [MCP Tool Shop](https://mcptoolshop.com)
+---
+
+Built by <a href="https://mcp-tool-shop.github.io/">MCP Tool Shop</a>
