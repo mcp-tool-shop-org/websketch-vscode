@@ -1,42 +1,50 @@
-<p align="center"><img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/websketch-vscode/readme.png" alt="WebSketch" width="340"></p>
-
-<h1 align="center">WebSketch</h1>
-
-<p align="center"><strong>将任何网页转化为 LLM 能真正理解的结构化语义树。</strong></p>
+<p align="center">
+  <a href="README.ja.md">日本語</a> | <a href="README.md">English</a> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português (BR)</a>
+</p>
 
 <p align="center">
-  <a href="README.md">English</a> | <a href="README.ja.md">日本語</a> | <strong>中文</strong> | <a href="README.es.md">Español</a> | <a href="README.fr.md">Français</a> | <a href="README.hi.md">हिन्दी</a> | <a href="README.it.md">Italiano</a> | <a href="README.pt-BR.md">Português</a>
+  <strong>English</strong> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.ja.md">日本語</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.zh.md">中文</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.es.md">Español</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.fr.md">Français</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.hi.md">हिन्दी</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.it.md">Italiano</a> | <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/blob/main/README.pt-BR.md">Português</a>
 </p>
+
+<p align="center"><img src="https://raw.githubusercontent.com/mcp-tool-shop-org/brand/main/logos/websketch-vscode/readme.png" alt="WebSketch" width="400"></p>
+
+<p align="center"><strong>Turn any web page into a structured tree that LLMs can actually understand.</strong></p>
 
 <p align="center">
   <a href="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml"><img src="https://github.com/mcp-tool-shop-org/websketch-vscode/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode"><img src="https://img.shields.io/visual-studio-marketplace/v/mcp-tool-shop.websketch-vscode.svg" alt="Marketplace"></a>
+  <a href="https://codecov.io/gh/mcp-tool-shop-org/websketch-vscode"><img src="https://codecov.io/gh/mcp-tool-shop-org/websketch-vscode/branch/main/graph/badge.svg" alt="Coverage"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
   <a href="https://mcp-tool-shop-org.github.io/websketch-vscode/"><img src="https://img.shields.io/badge/Landing_Page-live-blue" alt="Landing Page"></a>
 </p>
 
 <p align="center">
-  <a href="#the-problem">问题所在</a> · <a href="#the-solution">解决方案</a> · <a href="#quick-start">快速开始</a> · <a href="#how-it-reads">解读方式</a> · <a href="#use-cases">使用场景</a> · <a href="#ecosystem">生态系统</a>
+  <a href="#the-problem">The Problem</a> &middot;
+  <a href="#the-solution">The Solution</a> &middot;
+  <a href="#quick-start">Quick Start</a> &middot;
+  <a href="#how-it-reads">How It Reads</a> &middot;
+  <a href="#use-cases">Use Cases</a> &middot;
+  <a href="#ecosystem">Ecosystem</a>
 </p>
 
 ---
 
-## The Problem
+## 问题
 
-你想让 LLM 理解一个网页——它的布局、导航、交互元素和内容层级。但现有的方案都不够理想：
+您希望一个大型语言模型（LLM）能够理解网页的布局、导航、交互元素以及内容层级结构。目前可用的方法都存在不足：
 
-| 方案 | Token 数 | 丢失了什么 |
-|------|----------|-----------|
-| **截图** | 1,000+（视觉模型） | 无法识别小字，只能猜测布局，完全没有交互信息 |
-| **原始 HTML** | 50,000–500,000 | 淹没在 `div` 汤中，内联样式、脚本、SVG 噪声满天飞 |
-| **可读性提取** | 2,000–10,000 | 所有结构被剥离——没有导航、没有按钮、没有表单 |
-| **DOM 转储** | 10,000–100,000 | 到处都是类名、data 属性和框架产物 |
+| 方法 | 令牌（Token） | 您将失去的内容 |
+|----------|--------|---------------|
+| **Screenshot** | 1000+（视觉信息） | 无法识别小文本，只能猜测布局，无法获取任何交互信息。 |
+| **Raw HTML** | 50,000 - 500,000 | 被大量的 `div` 标签、内联样式、脚本和 SVG 噪音淹没。 |
+| **Readability extract** | 2,000 - 10,000 | 剥离所有结构，没有导航、按钮或表单。 |
+| **DOM dump** | 10,000 - 100,000 | 到处都是类名、数据属性和框架相关的代码。 |
 
-核心问题在于：**这些方案都不是用 UI 的语言在说话**。LLM 不需要 `<div class="sc-bdnxRM jJFqsI">` ——它需要的是 `NAV`、`BUTTON`、`CARD`、`LIST`。
+核心问题：**这些方法都无法理解用户界面的语言**。大型语言模型不需要 `<div class="sc-bdnxRM jJFqsI">`，它们需要 `NAV`、`BUTTON`、`CARD`、`LIST`。
 
-## The Solution
+## 解决方案
 
-WebSketch 使用 23 个 UI 语义原语将页面捕获为一棵**语义树**。在 VS Code 中一键操作，粘贴到任意 LLM：
+WebSketch 将网页转换为一个**语义树**，使用了 23 种用户界面基本元素。只需在 VS Code 中单击一次，然后将结果复制到任何大型语言模型中：
 
 ```
 PAGE
@@ -67,171 +75,177 @@ PAGE
    └─ TEXT "© 2026 Acme Inc."
 ```
 
-**200–800 个 token。** 不是 50,000，也不是像素网格。一棵干净的语义树，任何文本模型都能理解。
+**200 - 800 个令牌**。而不是 50,000 个。也不是像素网格。这是一个清晰的树状结构，任何文本模型都可以理解。
 
-### 正面对比
+### 对比
 
-| 指标 | WebSketch | 原始 HTML | 截图 |
-|------|-----------|----------|------|
-| **Token 数** | 200–800 | 50,000+ | 1,000+（视觉模型） |
-| **结构** | 完整语义树 | 嵌套 div 混乱 | 像素网格 |
-| **文本内容** | 带引号、带标签 | 埋在标记中 | 依赖 OCR |
-| **交互元素** | 用 `*` 标记 | 隐藏在属性中 | 不可见 |
-| **标题层级** | `<h1>` 到 `<h6>` | 消失在类名中 | 根据字号猜测 |
-| **地标元素** | `<main>`、`<nav>`、`<search>` | 需要 DOM 专业知识 | 无法获取 |
-| **适用于** | 任何文本 LLM | 几乎无用 | 仅限视觉模型 |
+| 指标 | WebSketch | 原始 HTML | 屏幕截图 |
+|--------|-----------|----------|------------|
+| **Tokens** | 200 - 800 | 50,000+ | 1000+（视觉信息） |
+| **Structure** | 完整的语义树 | 嵌套的 `div` 混乱 | 像素网格 |
+| **Text content** | 带引号，带标签 | 隐藏在标记中 | 依赖于 OCR 技术 |
+| **Interactive elements** | 用 `*` 标记 | 隐藏在属性中 | 不可见 |
+| **Heading hierarchy** | `<h1>` 到 `<h6>` | 隐藏在类名中 | 根据大小猜测 |
+| **Landmarks** | `<main>`, `<nav>`, `<search>` | 需要 DOM 知识 | 不可用 |
+| **Works with** | 任何文本大型语言模型 | 没有任何有用的信息 | 仅限视觉模型 |
 
-## Quick Start
+## 快速开始
 
-1. 从 [VS Code 扩展市场](https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode) 安装，或运行：
-   ```
-   ext install mcp-tool-shop.websketch-vscode
-   ```
-2. 打开命令面板（`Ctrl+Shift+P` / `Cmd+Shift+P`）
+1. 从 [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode) 安装，或者运行：
+```
+ext install mcp-tool-shop.websketch-vscode
+```
+2. 打开命令面板 (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 3. 运行 **WebSketch: Capture URL**
-4. 粘贴 URL 并按 Enter
-5. 点击 **Copy for LLM**，将内容粘贴到你的提示词中
+4. 粘贴一个 URL 并按 Enter 键
+5. 单击 **Copy for LLM** 并将结果粘贴到您的提示中
 
-LLM 标签页是默认视图。一键即可将语义树复制到剪贴板，可直接用于任何模型。
+LLM 选项卡是默认视图。单击一次即可将树状结构复制到剪贴板，以便用于任何模型。
 
-## How It Reads
+## 工作原理
 
-语义树中的每一行都是信息密集且机器可解析的：
+树状结构中的每一行都包含丰富的信息，并且易于机器解析：
 
 ```
 ├─ *BUTTON <search> {sticky} "Find products"
 │    │       │         │         │
-│    │       │         │         └─ 实际可见文本
-│    │       │         └─ 标记（sticky、scrollable）
-│    │       └─ 语义提示（search、main、h1、aside……）
-│    └─ 可交互（可点击/可输入）
+│    │       │         │         └─ Actual visible text
+│    │       │         └─ Flags (sticky, scrollable)
+│    │       └─ Semantic hint (search, main, h1, aside...)
+│    └─ Interactive (clickable/typeable)
 │
-└─ 树形结构展示父子嵌套关系
+└─ Tree structure shows parent-child nesting
 ```
 
-### 语法规则
+### 语法
 
 | 符号 | 含义 | 示例 |
-|------|------|------|
-| `*` 前缀 | 用户可以与之交互 | `*LINK`、`*BUTTON`、`*INPUT` |
-| `<semantic>` | 保留 HTML5/ARIA 语义 | `<h1>`、`<main>`、`<search>`、`<aside>` |
-| `{flags}` | 布局行为 | `{sticky}`、`{scrollable}` |
-| `"label"` | 可见文本内容 | `"Sign up free"`、`"Search..."` |
+|--------|---------|---------|
+| `*` 前缀 | 用户可以与之交互 | `*LINK`, `*BUTTON`, `*INPUT` |
+| `<semantic>` | 保留 HTML5/ARIA 的含义 | `<h1>`, `<main>`, `<search>`, `<aside>` |
+| `{flags}` | 布局行为 | `{sticky}`, `{scrollable}` |
+| `"label"` | 可见的文本内容 | `"Sign up free"`, `"Search..."` |
 | `(N items)` | 列表项数量 | `LIST (12 items)` |
 | 缩进 | 父子层级关系 | `HEADER > NAV > LIST > LINK` |
 
-### 23 个角色
+### 23 种角色
 
 | 类别 | 角色 |
-|------|------|
-| **布局** | `PAGE`、`HEADER`、`FOOTER`、`SECTION`、`NAV` |
-| **内容** | `TEXT`、`IMAGE`、`ICON`、`CARD`、`LIST`、`TABLE` |
-| **交互** | `BUTTON`、`LINK`、`INPUT`、`CHECKBOX`、`RADIO`、`FORM` |
-| **浮层** | `MODAL`、`TOAST`、`DROPDOWN` |
-| **导航** | `PAGINATION` |
-| **兜底** | `UNKNOWN` |
+|----------|-------|
+| **Layout** | `PAGE`, `HEADER`, `FOOTER`, `SECTION`, `NAV` |
+| **Content** | `TEXT`, `IMAGE`, `ICON`, `CARD`, `LIST`, `TABLE` |
+| **Interactive** | `BUTTON`, `LINK`, `INPUT`, `CHECKBOX`, `RADIO`, `FORM` |
+| **Overlays** | `MODAL`, `TOAST`, `DROPDOWN` |
+| **Navigation** | `PAGINATION` |
+| **Fallback** | `UNKNOWN` |
 
-这 23 个角色是一个固定词汇表——在所有网站上都保持一致。LLM 只需学习一次，就能理解任何页面。
+这 23 种角色是一个固定的词汇表，适用于每个网站。大型语言模型只需学习一次，即可理解任何页面。
 
-## What Gets Captured
+## 捕获的内容
 
-WebSketch 不是简单地转储 DOM。它对每个可见元素运行一个 **5 级分类器**：
+WebSketch 不仅仅是提取 DOM 树。它会对每个可见元素运行一个**五层分类器**：
 
 | 层级 | 来源 | 示例 |
-|------|------|------|
-| 1. **ARIA 角色** | `role="navigation"` | → `NAV` |
-| 2. **HTML 标签** | `<button>`、`<h1>` | → `BUTTON`、`TEXT <h1>` |
-| 3. **类名启发式** | `.card`、`.modal`、`.toast` | → `CARD`、`MODAL`、`TOAST` |
-| 4. **结构分析** | 3 个以上同角色兄弟节点 | → `LIST` |
-| 5. **兜底规则** | 纯文本元素 | → `TEXT`、`SECTION`、`UNKNOWN` |
+|------|--------|---------|
+| 1. **ARIA 角色** | `role="navigation"` | &rarr; `NAV` |
+| 2. **HTML 标签** | `<button>`, `<h1>` | &rarr; `BUTTON`、`TEXT <h1>` |
+| 3. **类名启发式** | `.card`, `.modal`, `.toast` | &rarr; `CARD`、`MODAL`、`TOAST` |
+| 4. **结构分析** | 3+ 个具有相同角色的兄弟元素 | &rarr; `LIST` |
+| 5. **备用方案** | 仅包含文本的元素 | &rarr; `TEXT`, `SECTION`, `UNKNOWN` |
 
 然后进行清理：
 
-- **透明表格遍历** —— 跳过 `TR`/`TD`/`TH`/`LI`，将子节点提升到表面
-- **零内容修剪** —— 删除空的、非交互的、不可见的节点
-- **包装器折叠** —— 移除无意义的单子节点 `SECTION` 包装器
-- **级联修剪** —— 彻底消除没有内容的空壳包装器链
-- **标签提取** —— 从链接、按钮、标题、图片、输入框中提取可见文本
+- **透明表遍历**：`TR`/`TD`/`TH`/`LI` 元素会被跳过，子元素会被提升到顶层。
+- **零内容节点裁剪**：空、非交互式、不可见节点会被移除。
+- **包装器折叠**：无意义的单子节点 `SECTION` 包装器会被移除。
+- **级联裁剪**：没有内容的空包装器链会被完全消除。
+- **标签提取**：从链接、按钮、标题、图像、输入框中提取可见文本。
 
-最终结果：一棵干净的语义树，包含理解页面所需的最少节点。
+结果：一个干净的树结构，只包含理解页面所需的最小节点。
 
-## Use Cases
+## 使用场景
 
-### 面向提示词工程师
+### 面向提示工程师
 
-**"描述这个页面的布局"** —— 粘贴语义树。LLM 能看到精确的结构、标题和导航，不会被 HTML 淹没。适用于 ChatGPT、Claude、Gemini、Llama——任何文本模型。
+**“描述此页面的布局”**：粘贴树结构。大型语言模型（LLM）可以清晰地看到结构、标题和导航，而不会被 HTML 代码淹没。适用于 ChatGPT、Claude、Gemini、Llama 等任何文本模型。
 
-**"用户在这个页面上能做什么？"** —— 每个交互元素都用 `*` 标记。链接、按钮、输入框、复选框——都带有可见文本标签。LLM 可以列举用户所有可能的操作。
+**“用户可以在此页面上做什么？”**：每个交互式元素都用 `*` 标记。链接、按钮、输入框、复选框等，所有元素都带有其可见文本标签。大型语言模型可以枚举所有可能的用户操作。
 
-**"比较这两个页面"** —— 两棵语义树并排放置。LLM 可以比较结构差异、发现缺失元素、对比导航模式——只需几百个 token。
+**“比较这两个页面”**：两个树结构并排显示。大型语言模型可以比较结构、发现缺失的元素、比较导航模式，所有这些只需要几百个令牌。
 
-### 面向开发者
+### 面向开发人员
 
-**"为这个 UI 生成测试计划"** —— 语义树直接映射到测试目标。`*BUTTON "Submit"`、`*INPUT <email> "Enter email"`、`*LINK "Terms"` ——每一个都是带有可见标签的可测试交互。
+**“为此 UI 生成测试计划”**：树结构直接映射到测试目标。`*BUTTON "Submit"`、`*INPUT <email> "Enter email"`、`*LINK "Terms"`，每个元素都是一个可测试的交互，并带有其可见标签。
 
-**"构建一个看起来像这样的页面"** —— 语义树接近于组件层级结构。`HEADER > NAV > LIST > LINK` 可以直接映射到 React/Vue/Svelte 组件。LLM 可以快速搭建匹配的布局。
+**“构建一个看起来像这样的东西”**：语义树结构接近组件层次结构。`HEADER > NAV > LIST > LINK` 直接映射到 React/Vue/Svelte 组件。大型语言模型可以生成匹配的布局。
 
-**"审查这个页面的无障碍性"** —— 缺失的地标元素、未标注的输入框、标题层级断裂——这些在语义树中一目了然。`<main>`、`<nav>`、`<search>` 等语义提示清楚地展示了哪些 ARIA 角色存在（或缺失）。
+**“审计此页面以检查可访问性”**：缺失的标记、未标记的输入框、标题层级结构不完整等问题，都可以在树结构中看到。语义提示，如 `<main>`、`<nav>`、`<search>`，显示了哪些 ARIA 角色存在（或缺失）。
 
-### 面向 AI 智能体
+### 面向 AI 代理
 
-**MCP 集成** —— 使用 [websketch-mcp](https://github.com/mcp-tool-shop-org/websketch-mcp) 赋予你的 AI 智能体捕获和理解任意网页的能力，将其作为工具链的一部分。
+**MCP 集成**：使用 [websketch-mcp](https://github.com/mcp-tool-shop-org/websketch-mcp) 为您的 AI 代理提供捕获和推理任何网页的能力，使其成为工具链的一部分。
 
-**自动化监控** —— 使用 [websketch-cli](https://github.com/mcp-tool-shop-org/websketch-cli) 按计划捕获页面、比较语义树差异，检测结构变化。
+**自动化监控**：使用 [websketch-cli](https://github.com/mcp-tool-shop-org/websketch-cli) 定期捕获页面，比较树结构，并检测结构性变化。
 
-## Four Views
+## 四种视图
 
-| 标签页 | 显示内容 | 最适合 |
-|--------|---------|--------|
-| **LLM**（默认） | 带标签、语义和标记的缩进语义树 | 粘贴到 LLM 提示词中 |
-| **ASCII** | 使用制表符的线框布局 | 理解视觉布局 |
-| **Tree** | 可折叠的节点树，带彩色角色标签 | 调试捕获结果 |
-| **JSON** | 完整的 `WebSketchCapture` IR，带语法高亮 | 编程使用和流水线集成 |
+| 标签 | 显示内容 | 最适合 |
+|-----|---------------|----------|
+| **LLM** (default) | 带有标签、语义、标志的缩进语义树 | 粘贴到大型语言模型提示中 |
+| **ASCII** | 带有空间布局的盒线图 | 视觉布局理解 |
+| **Tree** | 带有颜色编码角色的可折叠节点树 | 调试捕获 |
+| **JSON** | 完整的 `WebSketchCapture` 中间表示 (IR)，带有语法高亮 | 程序化使用和流水线 |
 
-## Commands
+## 命令
 
 | 命令 | 描述 |
-|------|------|
-| `WebSketch: Capture URL` | 输入 URL，捕获页面并显示结果 |
-| `WebSketch: Capture URL from Clipboard` | 捕获剪贴板中的 URL |
-| `WebSketch: Copy LLM Tree to Clipboard` | 复制语义树——可直接粘贴到 ChatGPT、Claude 等 |
-| `WebSketch: Export LLM Tree` | 保存为 `.md` 文件，用于提示词库或文档 |
-| `WebSketch: Export Capture as JSON` | 完整 IR 捕获，包含边界框、哈希值和元数据 |
-| `WebSketch: Export ASCII Wireframe` | 制表符绘制的布局视图 |
+|---------|-------------|
+| `WebSketch: Capture URL` | 提示 URL、捕获和显示 |
+| `WebSketch: Capture URL from Clipboard` | 捕获剪贴板中的任何 URL |
+| `WebSketch: Copy LLM Tree to Clipboard` | 复制树结构，直接粘贴到 ChatGPT、Claude 等中。 |
+| `WebSketch: Export LLM Tree` | 保存为 `.md` 文件，用于提示库或文档。 |
+| `WebSketch: Export Capture as JSON` | 完整 IR 捕获，包含边框、哈希值、元数据。 |
+| `WebSketch: Export ASCII Wireframe` | 盒线图布局视图 |
 
-## Settings
+## 设置
 
-| 设置项 | 默认值 | 描述 |
-|--------|--------|------|
-| `websketch.chromePath` | 自动检测 | Chrome 或 Edge 可执行文件的路径 |
+| 设置 | 默认值 | 描述 |
+|---------|---------|-------------|
+| `websketch.chromePath` | 自动检测 | Chrome 或 Edge 可执行文件路径 |
 | `websketch.viewportWidth` | `1280` | 视口宽度（像素） |
 | `websketch.viewportHeight` | `800` | 视口高度（像素） |
 | `websketch.timeout` | `30000` | 导航超时时间（毫秒） |
-| `websketch.waitAfterLoad` | `1000` | JS 渲染的额外等待时间（毫秒） |
+| `websketch.waitAfterLoad` | `1000` | JavaScript 渲染的额外等待时间（毫秒） |
 
-## Ecosystem
+## 生态系统
 
-WebSketch 是一个基于共享语法构建的工具家族：
+WebSketch 是一系列工具，它们基于共享的语法。
 
-| 包 | 功能 |
-|----|------|
-| [@mcptoolshop/websketch-ir](https://github.com/mcp-tool-shop-org/websketch-ir) | 核心 IR——语法、验证、渲染、差异比较、指纹识别 |
-| **websketch-vscode** | VS Code 扩展——在编辑器中捕获页面（即本仓库） |
-| [websketch-cli](https://github.com/mcp-tool-shop-org/websketch-cli) | 命令行捕获与渲染 |
-| [websketch-extension](https://github.com/mcp-tool-shop-org/websketch-extension) | Chrome 扩展，用于浏览器内捕获 |
-| [websketch-mcp](https://github.com/mcp-tool-shop-org/websketch-mcp) | MCP 服务器，用于 LLM 智能体集成 |
+| 软件包 | 功能 |
+|---------|-------------|
+| [@mcptoolshop/websketch-ir](https://github.com/mcp-tool-shop-org/websketch-ir) | 核心 IR（中间表示）—— 语法、验证、渲染、差异比较、指纹识别。 |
+| **websketch-vscode** | VS Code 扩展程序——从您的编辑器捕获页面（此仓库）。 |
+| [websketch-cli](https://github.com/mcp-tool-shop-org/websketch-cli) | 命令行捕获和渲染。 |
+| [websketch-extension](https://github.com/mcp-tool-shop-org/websketch-extension) | Chrome 扩展程序，用于在浏览器中捕获。 |
+| [websketch-mcp](https://github.com/mcp-tool-shop-org/websketch-mcp) | MCP 服务器，用于 LLM 代理集成。 |
 
-所有工具都生成相同的 `WebSketchCapture` IR，因此输出可在不同流水线之间互换使用。
+所有工具都生成相同的 `WebSketchCapture` IR，因此不同流水线的输出可以互相替换。
 
-## Requirements
+## 需求
 
-- VS Code 1.85+
-- 系统中已安装 Chrome 或 Edge
+- VS Code 1.85 或更高版本
+- 您的系统上已安装 Chrome 或 Edge 浏览器
 
-无需捆绑浏览器，无需 200MB 下载。WebSketch 使用 `puppeteer-core`，直接调用你已有的浏览器。
+不包含任何捆绑的浏览器。没有 200MB 的下载。WebSketch 使用 `puppeteer-core`，并使用您已有的浏览器。
 
-## License
+## 安全性和数据范围
 
-MIT 许可证——详见 [LICENSE](LICENSE)。
+**涉及的数据：** 用户输入的 URL（通过 `puppeteer-core` 使用本地 Chrome/Edge 浏览器以无头模式访问），捕获的页面内容转换为 IR 树，导出的文件写入工作区文件或剪贴板。 **未涉及的数据：** 不涉及工作区以外的文件，不涉及操作系统凭据，不涉及浏览器登录会话（无头模式，无用户配置文件）。 **网络：** 仅导航到用户指定的 URL，不进行其他外部请求。 **不收集或发送任何遥测数据。**
 
-> 隶属于 [MCP Tool Shop](https://mcptoolshop.com)
+## 许可证
+
+MIT 许可证——详情请参见 [LICENSE](LICENSE)。
+
+---
+
+由 <a href="https://mcp-tool-shop.github.io/">MCP Tool Shop</a> 构建。
