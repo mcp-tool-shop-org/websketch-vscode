@@ -14,7 +14,7 @@ export const config: SiteConfig = {
     headlineAccent: 'Speak the language of UI.',
     description: 'Capture any web page as a semantic tree of 23 UI primitives. 200–800 tokens instead of 50,000. Works with ChatGPT, Claude, Gemini — any text model.',
     primaryCta: { href: 'https://marketplace.visualstudio.com/items?itemName=mcp-tool-shop.websketch-vscode', label: 'Install from Marketplace' },
-    secondaryCta: { href: '#how-it-works', label: 'See how it works' },
+    secondaryCta: { href: 'handbook/', label: 'Read the Handbook' },
     previews: [
       { label: 'Install', code: 'ext install mcp-tool-shop.websketch-vscode' },
       { label: 'Capture', code: 'Ctrl+Shift+P → WebSketch: Capture URL' },
